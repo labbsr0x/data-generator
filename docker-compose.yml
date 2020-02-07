@@ -1,0 +1,30 @@
+version: '3.1'
+
+services:
+    
+  cassandra: 
+    image: cassandra:latest
+    ports:
+      - 7070:7070
+      - 9042:9042
+      - 9160:9160
+    expose:
+      - 7070
+      - 9042
+      - 9160
+    volumes:
+      - cassandra-data:/var/lib/cassandra
+      - ./cassandra-init.sh:/cassandra-init.sh
+    #command: "sh /cassandra-init.sh"
+
+  golang:
+    build: .
+    restart: always
+    image: golang
+    ports: 
+      - 8080:8080
+    depends_on:
+      - "cassandra"
+
+volumes: 
+  cassandra-data: {}
