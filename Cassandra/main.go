@@ -50,7 +50,7 @@ func init() {
 
 }
 
-func InsertUser() {
+func InsertTwitter() {
 	var gocqlUuid gocql.UUID
 	var errs []string
 
