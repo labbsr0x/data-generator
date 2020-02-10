@@ -12,9 +12,6 @@ services:
       - 7070
       - 9042
       - 9160
-    volumes:
-      - cassandra-data:/var/lib/cassandra
-      - ./cassandra-init.sh:/cassandra-init.sh
     #command: "sh /cassandra-init.sh"
 
   golang:
@@ -25,6 +22,3 @@ services:
       - 8080:8080
     depends_on:
       - "cassandra"
-
-volumes: 
-  cassandra-data: {}
