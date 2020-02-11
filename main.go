@@ -9,5 +9,6 @@ func main()  {
 	
 	defer CassandraSession.Close()
 
-	Cassandra.InsertTwitter()
+	Cassandra.InsertPokemon()
+	Cassandra.InsertTrainer()
 }
