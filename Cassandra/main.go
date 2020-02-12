@@ -21,15 +21,19 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	if err := Session.Query(`
 		CREATE KEYSPACE example WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};`).Exec(); err != nil {
-		log.Fatal(err)
+			log.Fatal(err)
 	} 
 	cluster.Keyspace = "name"
 	cluster.ProtoVersion = 3
 	cluster.Consistency = gocql.One
 	
+	log.Print("Cassandra init done")
+
+}
+
+func CreateSchema() {
 	if err := Session.Query(`
 		create table example.pokemon(id UUID, name text, level int, attack text, owner_name text, PRIMARY KEY(id));`).Exec(); err != nil {
 			log.Fatal(err)
@@ -49,9 +53,7 @@ func init() {
 		create table example.attack(id UUID, attack_name text, damage int, PRIMARY KEY(id));`).Exec(); err != nil {
 			log.Fatal(err)
 	} 
-
-	fmt.Println("cassandra init done")
-
+	log.Print("Schema Created")
 }
 
 func InsertPokemon() {
@@ -59,7 +61,8 @@ func InsertPokemon() {
       INSERT INTO example.pokemon (id, name, level, attack, owner_name) VALUES (?, ?, ?, ?, ?)`,
 	  gocql.TimeUUID(), "Pikachu", rand.Intn(100), FindAttack(), FindTrainer()).Exec(); err != nil {
       	log.Fatal(err)
-    } 
+	} 
+	log.Print("Pokemon Created")
 }
 
 func FindAttack() string{
@@ -86,7 +89,8 @@ func InsertTrainer() {
       INSERT INTO example.trainer (id, name, badge_name) VALUES (?, ?, ?)`,
 	  gocql.TimeUUID(), "Ash", "Hive Badge").Exec(); err != nil {
 		log.Fatal(err)
-    } 
+	}
+	log.Print("Trainer Created")
 }
 
 func InsertBattle() {
@@ -105,6 +109,8 @@ func InsertBattle() {
 		id, battleParticipants[0], battleParticipants[1]).Exec(); err != nil {
 			log.Fatal(err)
 	}
+
+	log.Print("Battle Created")
 }
 
 func InsertAttack() {
@@ -112,5 +118,6 @@ func InsertAttack() {
 		INSERT INTO example.attack (id, attack_name, damage) VALUES (?, ?, ?)`,
 		gocql.TimeUUID(), "Thundershock", rand.Intn(100)).Exec(); err != nil {
       		log.Fatal(err)
-    } 
+	} 
+	log.Print("Attack Created")
 }
