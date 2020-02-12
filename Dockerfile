@@ -2,6 +2,7 @@ FROM golang:alpine as builder
 RUN mkdir /build 
 ADD . /build/
 WORKDIR /build
+RUN apk update
 RUN apk add git
 RUN go get github.com/gocql/gocql
 RUN go build -o main .

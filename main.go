@@ -9,6 +9,11 @@ func main()  {
 	
 	defer CassandraSession.Close()
 
-	Cassandra.InsertPokemon()
+	Cassandra.InsertAttack()
 	Cassandra.InsertTrainer()
+	Cassandra.InsertPokemon()
+	Cassandra.InsertAttack()
+	Cassandra.InsertTrainer()
+	Cassandra.InsertPokemon()
+	Cassandra.InsertBattle()
 }
