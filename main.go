@@ -4,6 +4,8 @@ import (
 	"./Cassandra"
 )
 
+
+
 func main()  {
 	CassandraSession := Cassandra.Session
 	Cassandra.CreateSchema()

@@ -6,13 +6,14 @@ import (
 	"time"
 	"math/rand"
 	"log"
+	"../Data"
 )
 
 // Session holds our connection to Cassandra
 var Session *gocql.Session
 
 func init() {
-	time.Sleep(40 * time.Second)
+	time.Sleep(30 * time.Second)
 	var err error
 
 	cluster := gocql.NewCluster("cassandra")
@@ -36,30 +37,32 @@ func init() {
 func CreateSchema() {
 	if err := Session.Query(`
 		create table example.pokemon(id UUID, name text, level int, attack text, owner_name text, PRIMARY KEY(id));`).Exec(); err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 	} 
 
 	if err := Session.Query(`
 		create table example.trainer(id UUID, name text, badge_name text, PRIMARY KEY(id));`).Exec(); err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 	} 
 
 	if err := Session.Query(`
 		create table example.battle(id UUID, first_pokemon UUID, second_pokemon UUID, PRIMARY KEY(id, first_pokemon, second_pokemon));`).Exec(); err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 	} 
 
 	if err := Session.Query(`
 		create table example.attack(id UUID, attack_name text, damage int, PRIMARY KEY(id));`).Exec(); err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 	} 
 	log.Print("Schema Created")
 }
 
 func InsertPokemon() {
+	//var pokemon_name string
+	pokemon_name := Data.GetRandomPokemonName(Data.PokemonList)
 	if err := Session.Query(`
       INSERT INTO example.pokemon (id, name, level, attack, owner_name) VALUES (?, ?, ?, ?, ?)`,
-	  gocql.TimeUUID(), "Pikachu", rand.Intn(100), FindAttack(), FindTrainer()).Exec(); err != nil {
+	  gocql.TimeUUID(), pokemon_name, rand.Intn(100), FindAttack(), FindTrainer()).Exec(); err != nil {
       	log.Fatal(err)
 	} 
 	log.Print("Pokemon Created")
