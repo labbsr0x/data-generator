@@ -1,6 +1,6 @@
 FROM golang:alpine as builder
 RUN mkdir /build 
-ADD . /build/
+ADD ./data-generator /build/
 WORKDIR /build
 RUN apk update
 RUN apk add git

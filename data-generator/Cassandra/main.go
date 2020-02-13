@@ -2,7 +2,6 @@ package Cassandra
 
 import (
 	"github.com/gocql/gocql"
-	"fmt"
 	"time"
 	"math/rand"
 	"log"
@@ -24,7 +23,7 @@ func init() {
 	}
 	if err := Session.Query(`
 		CREATE KEYSPACE example WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};`).Exec(); err != nil {
-			log.Fatal(err)
+			log.Print(err)
 	} 
 	cluster.Keyspace = "name"
 	cluster.ProtoVersion = 3
@@ -37,32 +36,31 @@ func init() {
 func CreateSchema() {
 	if err := Session.Query(`
 		create table example.pokemon(id UUID, name text, level int, attack text, owner_name text, PRIMARY KEY(id));`).Exec(); err != nil {
-			log.Panic(err)
+			log.Print(err)
 	} 
 
 	if err := Session.Query(`
 		create table example.trainer(id UUID, name text, badge_name text, PRIMARY KEY(id));`).Exec(); err != nil {
-			log.Panic(err)
+			log.Print(err)
 	} 
 
 	if err := Session.Query(`
 		create table example.battle(id UUID, first_pokemon UUID, second_pokemon UUID, PRIMARY KEY(id, first_pokemon, second_pokemon));`).Exec(); err != nil {
-			log.Panic(err)
+			log.Print(err)
 	} 
 
 	if err := Session.Query(`
 		create table example.attack(id UUID, attack_name text, damage int, PRIMARY KEY(id));`).Exec(); err != nil {
-			log.Panic(err)
+			log.Print(err)
 	} 
 	log.Print("Schema Created")
 }
 
 func InsertPokemon() {
-	//var pokemon_name string
-	pokemon_name := Data.GetRandomPokemonName(Data.PokemonList)
+	pokemonName := Data.GetRandomPokemonName(Data.PokemonList)
 	if err := Session.Query(`
       INSERT INTO example.pokemon (id, name, level, attack, owner_name) VALUES (?, ?, ?, ?, ?)`,
-	  gocql.TimeUUID(), pokemon_name, rand.Intn(100), FindAttack(), FindTrainer()).Exec(); err != nil {
+	  gocql.TimeUUID(), pokemonName, rand.Intn(100), FindAttack(), FindTrainer()).Exec(); err != nil {
       	log.Fatal(err)
 	} 
 	log.Print("Pokemon Created")
@@ -88,9 +86,10 @@ func FindTrainer() string{
 }
 
 func InsertTrainer() {
+	trainerName := Data.GetRandomTrainerName(Data.TrainerList)
 	if err := Session.Query(`
       INSERT INTO example.trainer (id, name, badge_name) VALUES (?, ?, ?)`,
-	  gocql.TimeUUID(), "Ash", "Hive Badge").Exec(); err != nil {
+	  gocql.TimeUUID(), trainerName, "Hive Badge").Exec(); err != nil {
 		log.Fatal(err)
 	}
 	log.Print("Trainer Created")
@@ -103,11 +102,9 @@ func InsertBattle() {
 	//select last pokemons registered to add to battle
 	iter := Session.Query(`SELECT id FROM example.pokemon LIMIT 2`).Iter()
 	for iter.Scan(&id) {
-		fmt.Printf("pokemon id: %v", id)
 		battleParticipants = append(battleParticipants, id)
-    }
-
-	fmt.Printf("%v", battleParticipants[0])
+	}
+	
 	if err := Session.Query(`INSERT INTO example.battle (id, first_pokemon, second_pokemon) VALUES (?, ?, ?)`, 
 		id, battleParticipants[0], battleParticipants[1]).Exec(); err != nil {
 			log.Fatal(err)
@@ -117,9 +114,10 @@ func InsertBattle() {
 }
 
 func InsertAttack() {
+	attackName := Data.GetRandomAttackName(Data.AttackList)
 	if err := Session.Query(`
 		INSERT INTO example.attack (id, attack_name, damage) VALUES (?, ?, ?)`,
-		gocql.TimeUUID(), "Thundershock", rand.Intn(100)).Exec(); err != nil {
+		gocql.TimeUUID(), attackName, rand.Intn(100)).Exec(); err != nil {
       		log.Fatal(err)
 	} 
 	log.Print("Attack Created")
