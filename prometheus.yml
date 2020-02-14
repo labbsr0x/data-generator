@@ -1,0 +1,13 @@
+--- 
+global: 
+  evaluation_interval: 5s
+  scrape_interval: 5s
+scrape_configs: 
+  - 
+    job_name: cassandra_exporter
+    static_configs: 
+      - 
+        labels: 
+          alias: db1
+        targets: 
+          - "cassandra_exporter:8080"
