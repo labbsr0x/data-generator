@@ -5,14 +5,12 @@ services:
   cassandra: 
     image: cassandra:latest
     ports:
-      - 7070:7070
       - 9042:9042
-      - 9160:9160
     expose:
-      - 7070
       - 9042
-      - 9160
-    #command: "sh /cassandra-init.sh"
+    environment:
+      - LOCAL_JMX=no
+      - JVM_EXTRA_OPTS=-Djava.rmi.server.hostname=cassandra
 
   golang:
     build: .
@@ -21,3 +19,29 @@ services:
       - 8080:8080
     depends_on:
       - "cassandra"
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - 9090:9090
+    command:
+    - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+
+  cassandra_exporter:
+    image: criteord/cassandra_exporter
+    ports: 
+      - 8081:8080
+    environment:
+      - CASSANDRA_EXPORTER_CONFIG_host=cassandra:7199
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000    
+
+volumes:
+  prometheus_data: {}
+
