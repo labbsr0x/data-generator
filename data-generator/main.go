@@ -16,9 +16,11 @@ func main()  {
 		Cassandra.InsertAttack()
 		Cassandra.InsertTrainer()
 		Cassandra.InsertPokemon()
-		Cassandra.InsertAttack()
-		Cassandra.InsertTrainer()
-		Cassandra.InsertPokemon()
-		Cassandra.InsertBattle()
+		//Cassandra.InsertAttack()
+		//Cassandra.InsertTrainer()
+		//Cassandra.InsertPokemon()
+		//Cassandra.InsertBattle()
+		go Cassandra.GetPokemon()
 	}
+	
 }
