@@ -58,12 +58,13 @@ func CreateSchema() {
 
 func InsertPokemon() {
 	pokemonName := Data.GetRandomPokemonName(Data.PokemonList)
+	uuid := gocql.TimeUUID()
 	if err := Session.Query(`
       INSERT INTO example.pokemon (id, name, level, attack, owner_name) VALUES (?, ?, ?, ?, ?)`,
-	  gocql.TimeUUID(), pokemonName, rand.Intn(100), FindAttack(), FindTrainer()).Exec(); err != nil {
+	  uuid, pokemonName, rand.Intn(100), FindAttack(), FindTrainer()).Exec(); err != nil {
       	log.Fatal(err)
 	} 
-	log.Print("Pokemon Created")
+	log.Print("Pokemon Created. uuid: ", uuid)
 }
 
 func FindAttack() string{
@@ -102,6 +103,7 @@ func InsertBattle() {
 	//select last pokemons registered to add to battle
 	iter := Session.Query(`SELECT id FROM example.pokemon LIMIT 2`).Iter()
 	for iter.Scan(&id) {
+		log.Print("Pokemon id: ", id)
 		battleParticipants = append(battleParticipants, id)
 	}
 	
@@ -121,4 +123,14 @@ func InsertAttack() {
       		log.Fatal(err)
 	} 
 	log.Print("Attack Created")
+}
+
+func GetPokemon() {
+	var counter int
+	var name string
+	time.Sleep(10 * time.Second)
+	if err := Session.Query(`SELECT COUNT(*), name FROM example.pokemon`).Scan(&counter, &name); err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Read %d data", counter)
 }
