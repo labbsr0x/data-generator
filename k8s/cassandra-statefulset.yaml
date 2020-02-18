@@ -68,14 +68,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
-        #readinessProbe:
-        #  exec:
-        #    command:
-        #    - /bin/bash
-        #    - -c
-        #    - /ready-probe.sh
-        #  initialDelaySeconds: 15
-        #  timeoutSeconds: 5
         # These volume mounts are persistent. They are like inline claims,
         # but not exactly because the names need to match exactly one of
         # the stateful pod volumes.
@@ -90,7 +82,7 @@ spec:
       name: cassandra-data
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: fast
+      storageClassName: local-storage
       resources:
         requests:
           storage: 1Gi
@@ -98,7 +90,30 @@ spec:
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: fast
-provisioner: k8s.io/minikube-hostpath
-parameters:
-  type: pd-ssd
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: example-pv
+spec:
+  capacity:
+    storage: 10Gi
+  # volumeMode field requires BlockVolume Alpha feature gate to be enabled.
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - minikube 
