@@ -4,8 +4,6 @@ import (
 	"./Cassandra"
 )
 
-
-
 func main()  {
 	CassandraSession := Cassandra.Session
 	Cassandra.CreateSchema()
@@ -13,14 +11,8 @@ func main()  {
 	defer CassandraSession.Close()
 
 	for { 
-		Cassandra.InsertAttack()
-		Cassandra.InsertTrainer()
-		Cassandra.InsertPokemon()
-		//Cassandra.InsertAttack()
-		//Cassandra.InsertTrainer()
-		//Cassandra.InsertPokemon()
-		//Cassandra.InsertBattle()
-		go Cassandra.GetPokemon()
+		Cassandra.InsertData()
+		go Cassandra.ReadData()
 	}
 	
 }
