@@ -22,7 +22,7 @@ func init() {
 		log.Fatal(err)
 	}
 	if err := Session.Query(`
-		CREATE KEYSPACE example WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};`).Exec(); err != nil {
+		CREATE KEYSPACE cortex WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};`).Exec(); err != nil {
 			log.Print(err)
 	} 
 	cluster.Keyspace = "name"
@@ -35,22 +35,7 @@ func init() {
 
 func CreateSchema() {
 	if err := Session.Query(`
-		create table example.pokemon(id UUID, name text, level int, attack text, owner_name text, PRIMARY KEY(id));`).Exec(); err != nil {
-			log.Print(err)
-	} 
-
-	if err := Session.Query(`
-		create table example.trainer(id UUID, name text, badge_name text, PRIMARY KEY(id));`).Exec(); err != nil {
-			log.Print(err)
-	} 
-
-	if err := Session.Query(`
-		create table example.battle(id UUID, first_pokemon UUID, second_pokemon UUID, PRIMARY KEY(id, first_pokemon, second_pokemon));`).Exec(); err != nil {
-			log.Print(err)
-	} 
-
-	if err := Session.Query(`
-		create table example.attack(id UUID, attack_name text, damage int, PRIMARY KEY(id));`).Exec(); err != nil {
+		create table example.chunk(hash text, range blob, value blob, PRIMARY KEY(hash, range));`).Exec(); err != nil {
 			log.Print(err)
 	} 
 	log.Print("Schema Created")
@@ -126,11 +111,44 @@ func InsertAttack() {
 }
 
 func GetPokemon() {
+	time.Sleep(4 * time.Second)
 	var counter int
 	var name string
-	time.Sleep(10 * time.Second)
 	if err := Session.Query(`SELECT COUNT(*), name FROM example.pokemon`).Scan(&counter, &name); err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("Read %d data", counter)
+}
+
+func InsertData() {
+	if err := Session.Query(`
+      INSERT INTO cortex.chunk (hash, range, value) VALUES (?, ?, ?)`,
+	  randomString(100), randomString(4), randomString(1000)).Exec(); err != nil {
+		log.Fatal(err)
+	}
+	log.Print("Data Created")
+}
+
+func ReadData() {
+	var counter int
+	var hash string
+	if err := Session.Query(`SELECT COUNT(*), hash FROM cortex.chunk`).Scan(&counter, &hash); err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Read %d row(s)", counter)
+	
+}
+
+// Returns an int >= min, < max
+func randomInt(min, max int) int {
+    return min + rand.Intn(max-min)
+}
+
+// Generate a random string of A-Z chars with len = l
+func randomString(len int) string {
+    bytes := make([]byte, len)
+    for i := 0; i < len; i++ {
+        bytes[i] = byte(randomInt(33, 122))
+    }
+    return string(bytes)
 }
