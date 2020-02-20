@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"log"
 	"../Data"
+	"sync"
 )
 
 // Session holds our connection to Cassandra
@@ -25,7 +26,7 @@ func init() {
 		CREATE KEYSPACE cortex WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 1};`).Exec(); err != nil {
 			log.Print(err)
 	} 
-	cluster.Keyspace = "name"
+	cluster.Keyspace = "cortex"
 	cluster.ProtoVersion = 3
 	cluster.Consistency = gocql.One
 	
@@ -35,7 +36,7 @@ func init() {
 
 func CreateSchema() {
 	if err := Session.Query(`
-		create table example.chunk(hash text, range blob, value blob, PRIMARY KEY(hash, range));`).Exec(); err != nil {
+		create table cortex.chunk(hash text, range blob, value blob, PRIMARY KEY(hash, range));`).Exec(); err != nil {
 			log.Print(err)
 	} 
 	log.Print("Schema Created")
@@ -120,31 +121,47 @@ func GetPokemon() {
 	log.Printf("Read %d data", counter)
 }
 
-func InsertData() {
-	if err := Session.Query(`
-      INSERT INTO cortex.chunk (hash, range, value) VALUES (?, ?, ?)`,
-	  randomString(100), randomString(4), randomString(1000)).Exec(); err != nil {
-		log.Fatal(err)
+func InsertData(doneCh chan struct{}, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for {
+		select{
+		case <-doneCh:
+			log.Print("Stopping data inserting")
+			return
+		default:
+			if err := Session.Query(`
+      			INSERT INTO cortex.chunk (hash, range, value) VALUES (?, ?, ?)`,
+	  			randomString(100), randomString(4), randomString(1000)).Exec(); err != nil {
+				log.Fatal(err)
+			}
+			log.Print("Data created!")
+		}
 	}
-	log.Print("Data Created")
 }
 
-func ReadData() {
-	var counter int
-	var hash string
-	if err := Session.Query(`SELECT COUNT(*), hash FROM cortex.chunk`).Scan(&counter, &hash); err != nil {
-		log.Fatal(err)
+func ReadData(doneCh chan struct{}, wg *sync.WaitGroup) {
+	log.Print("Reading data")
+	defer wg.Done()
+	for {
+		select{
+		case <-doneCh:
+			log.Print("Stopping data reading")
+			return
+		default:
+			var counter int
+			var hash string
+			if err := Session.Query(`SELECT COUNT(*), hash FROM cortex.chunk`).Scan(&counter, &hash); err != nil {
+				log.Fatal(err)
+			}
+			log.Printf("Readed %d rows!", counter)
+		}
 	}
-	log.Printf("Read %d row(s)", counter)
-	
 }
 
-// Returns an int >= min, < max
 func randomInt(min, max int) int {
     return min + rand.Intn(max-min)
 }
 
-// Generate a random string of A-Z chars with len = l
 func randomString(len int) string {
     bytes := make([]byte, len)
     for i := 0; i < len; i++ {
